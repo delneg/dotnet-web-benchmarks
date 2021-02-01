@@ -1,15 +1,8 @@
 source https://www.nuget.org/api/v2
-framework: >=net45
-
-
-group build
-  framework: >=net45
-  source https://nuget.org/api/v2
-  
-  nuget FAKE
-  nuget FSharp.Formatting
-  nuget Newtonsoft.Json
-  nuget FsLab
-  nuget MarkdownLog
-  nuget BenchmarkDotNet
-  nuget CsvHelper
+nuget FAKE
+nuget FSharp.Formatting
+nuget Newtonsoft.Json
+nuget FsLab
+nuget MarkdownLog
+nuget BenchmarkDotNet
+nuget CsvHelper
