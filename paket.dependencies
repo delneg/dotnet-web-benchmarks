@@ -2,7 +2,7 @@ source https://www.nuget.org/api/v2
 nuget FAKE
 nuget FSharp.Formatting
 nuget Newtonsoft.Json
-nuget FsLab
+//nuget FsLab
 nuget MarkdownLog
 nuget BenchmarkDotNet
 nuget CsvHelper

@@ -1,10 +1,14 @@
 // include Fake libs
 
-#r "./packages/build/FAKE/tools/FakeLib.dll"
-#load "./.paket/load/net461/build/build.group.fsx"
-
-
+#r "./packages/FAKE/tools/FakeLib.dll"
+#load "./.paket/load/net50/main.group.fsx"
+//#r "./packages/build/XPlot.GoogleCharts/lib/net45/XPlot.GoogleCharts.dll"
+//#r "./packages/build/Newtonsoft.Json/lib/netstandard2.0/Newtonsoft.Json.dll"
+//#r "./packages/build/BenchmarkDotNet/lib/netstandard2.0/BenchmarkDotNet.dll"
+//#r "./packages/build/CsvHelper/lib/net5.0/CsvHelper.dll"
+//#r "./packages/build/MarkdownLog/lib/netstandard2.0/MarkdownLog.dll"
 open Fake
+open Fake.DotNet
 open Fake.EnvironmentHelper
 open Fake.FileSystemHelper
 open System
@@ -13,11 +17,10 @@ open System.Text
 open System.Diagnostics
 open System.Net.Sockets
 
-open XPlot.GoogleCharts
+//open XPlot.GoogleCharts
 open Newtonsoft.Json
 open BenchmarkDotNet.Environments
 open CsvHelper
-
 
 module ProcessHelper = 
     open System
@@ -211,14 +214,15 @@ type SystemInfo = {
 }
 
 let getSystemInfo () =
-    let hostInfo =  HostEnvironmentInfo.GetCurrent()
+//    let hostInfo =  BenchmarkDotNet.Environments.BenchmarkEnvironmentInfo.
+    //let cpuInfo : BenchmarkDotNet.Portability.Cpu.CpuInfo = hostInfo.CpuInfo.Force()
     let benchInfo = BenchmarkEnvironmentInfo.GetCurrent()
     {
-        CPUModel =  hostInfo.ProcessorName.Value
-        ProcessorCount = hostInfo.ProcessorCount
+        CPUModel =  ""
+        ProcessorCount = 0
         MonoVersion = benchInfo.RuntimeVersion
-        DotnetVersion = hostInfo.DotNetCliVersion.Value
-        OperatingSystem = hostInfo.OsVersion.Value
+        DotnetVersion =""
+        OperatingSystem = ""
     }
 
 let td inner = 
@@ -296,8 +300,8 @@ type ProjectName = string
 
 let writeToFile filePath str =
     System.IO.File.WriteAllText(filePath, str)
-let getHtml (chart : GoogleChart) =
-    chart.GetInlineHtml()
+//let getHtml (chart : GoogleChart) =
+//    chart.InlineHtml
 
 let wrk threads connections duration script url=
     let args = sprintf "-t%d -c%d -d%d -s %s %s" threads connections duration script url
@@ -602,7 +606,7 @@ let createCsvReport (results : seq<BenchmarkResult>) =
     let fileName = getReportPath "csv"
     let write () =
         use textWriter =  fileName |> File.CreateText
-        use csv = new CsvWriter( textWriter )
+        use csv = new CsvHelper.CsvWriter(textWriter, System.Globalization.CultureInfo.InvariantCulture)
         csv.WriteRecords( results )
 
     write ()
@@ -611,51 +615,51 @@ let createCsvReport (results : seq<BenchmarkResult>) =
     |> Seq.iter(printfn "%A")
 
 
-let createHtmlReport (results : seq<BenchmarkResult>) =  
-    let firstResult = results |> Seq.head 
-    let duration = firstResult.Duration 
-    let reportPath = getReportPath "html"
-    let labels = results |> Seq.map(fun result -> sprintf "%s-%s-%d" (result.FriendlyName()) result.Route result.Iteration)
+//let createHtmlReport (results : seq<BenchmarkResult>) =  
+//    let firstResult = results |> Seq.head 
+//    let duration = firstResult.Duration 
+//    let reportPath = getReportPath "html"
+//    let labels = results |> Seq.map(fun result -> sprintf "%s-%s-%d" (result.FriendlyName()) result.Route result.Iteration)
 
 
-
-    let totalRequestsChart =
-        results
-        |> Seq.map(fun (result) -> [("Total",result.TotalRequests)])
-        |> Chart.Bar
-        |> Chart.WithLabels (labels)
-        |> Chart.WithTitle (sprintf "Total Requests over %d seconds" duration)
-    
-    let requestsPerSecondChart =
-        results
-        |> Seq.map(fun (result) -> [("Req/s", result.RequestsPerSecond)])
-        |> Chart.Bar
-        |> Chart.WithLabels (labels)
-        |> Chart.WithTitle (sprintf "Requests per second over %d seconds" duration)
-
-        
-    let meanLatencyChart =
-        results
-        |> Seq.map(fun (result) -> 
-            [
-                // ("Min", latency.min/1000.); 
-                // ("Max", latency.max/1000.); 
-                ("Mean", result.LatencyMean/1000.); 
-            ])
-        |> Chart.Bar
-        |> Chart.WithLabels (labels)
-        |> Chart.WithTitle (sprintf "Mean latency in milliseconds over %d seconds" duration)
-    
-    
-    [totalRequestsChart;requestsPerSecondChart;meanLatencyChart]
-    |> Seq.map getHtml
-    |> stringJoin ""
-    |> createPage (systemInfoToHtmlTable(getSystemInfo ()))
-    |> writeToFile reportPath
-    |> fun _ ->   
-        try
-            System.Diagnostics.Process.Start((Path.GetFullPath(reportPath)))  |> ignore
-        with _ -> ()
+//
+//    let totalRequestsChart =
+//        results
+//        |> Seq.map(fun (result) -> [("Total",result.TotalRequests)])
+//        |> Chart.Bar
+//        |> Chart.WithLabels (labels)
+//        |> Chart.WithTitle (sprintf "Total Requests over %d seconds" duration)
+//    
+//    let requestsPerSecondChart =
+//        results
+//        |> Seq.map(fun (result) -> [("Req/s", result.RequestsPerSecond)])
+//        |> Chart.Bar
+//        |> Chart.WithLabels (labels)
+//        |> Chart.WithTitle (sprintf "Requests per second over %d seconds" duration)
+//
+//        
+//    let meanLatencyChart =
+//        results
+//        |> Seq.map(fun (result) -> 
+//            [
+//                // ("Min", latency.min/1000.); 
+//                // ("Max", latency.max/1000.); 
+//                ("Mean", result.LatencyMean/1000.); 
+//            ])
+//        |> Chart.Bar
+//        |> Chart.WithLabels (labels)
+//        |> Chart.WithTitle (sprintf "Mean latency in milliseconds over %d seconds" duration)
+//    
+//    
+//    [totalRequestsChart;requestsPerSecondChart;meanLatencyChart]
+//    |> Seq.map getHtml
+//    |> stringJoin ""
+//    |> createPage (systemInfoToHtmlTable(getSystemInfo ()))
+//    |> writeToFile reportPath
+//    |> fun _ ->   
+//        try
+//            System.Diagnostics.Process.Start((Path.GetFullPath(reportPath)))  |> ignore
+//        with _ -> ()
     
 
 let invoke f = f()
@@ -666,7 +670,7 @@ Target "GenerateReport" (fun _ ->
         dumpAllDataToConsole
         createTextReport
         createCsvReport
-        createHtmlReport
+//        createHtmlReport
     ]
     |> Seq.map(fun f -> fun () -> f results)
     |> Seq.iter invoke
@@ -679,7 +683,7 @@ Target "SystemInfo" (fun _ ->
 
 Target "AggregateReport"(fun _ ->
     use textReader = File.OpenText "report-benchmark.csv"
-    use csv = new CsvReader( textReader )
+    use csv = new CsvReader(textReader, System.Globalization.CultureInfo.InvariantCulture)
     let records = csv.GetRecords<BenchmarkResult>()
 
     records
@@ -708,4 +712,4 @@ Target "AggregateReport"(fun _ ->
 
 
 // start build
-RunTargetOrDefault "GenerateReport"
+RunTargetOrDefault "Benchmark"

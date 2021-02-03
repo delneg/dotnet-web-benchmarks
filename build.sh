@@ -18,17 +18,17 @@ then
   packages/FAKE/tools/FAKE.exe $@ --fsiargs build.fsx
 else
   # use mono
-  mono .paket/paket.bootstrapper.exe
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
+#   mono .paket/paket.bootstrapper.exe
+#   exit_code=$?
+#   if [ $exit_code -ne 0 ]; then
+#   	exit $exit_code
+#   fi
 
-  mono .paket/paket.exe restore
+  dotnet paket restore
   exit_code=$?
   if [ $exit_code -ne 0 ]; then
   	exit $exit_code
   fi
-  mono .paket/paket.exe generate-load-scripts framework net461 type fsx
-  mono packages/build/FAKE/tools/FAKE.exe $@ --nocache --fsiargs -d:MONO build.fsx
+  dotnet paket generate-load-scripts --type fsx -f net5.0 -v
+  dotnet fsi build.fsx
 fi
